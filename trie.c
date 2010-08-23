@@ -25,7 +25,9 @@ static trie_node * trie_add_sibling_for_char(trie_node * node, char ch);
 static trie_node * trie_new_node_with_char(char ch);
 static trie_node * trie_new_node();
 static VALUE rb_trie_find_children(VALUE self, VALUE key);
+static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key);
 static void trie_collect_values(void * t, VALUE prary);
+static void trie_collect_values_with_yield(void * t);
 static void trie_traverse(trie_node * trie, void (*lambda_func)(void *));
 static void trie_traverse_with_context(trie_node * trie, VALUE context, void (*lambda_func)(void *, VALUE));
 static void free_trie(trie_node * trie);
@@ -146,6 +148,7 @@ void Init_trie() {
 	rb_define_method(rb_cTrie, "[]", rb_trie_get_key, arg_count);
 	rb_define_method(rb_cTrie, "delete", rb_trie_undef_key, arg_count);
 	rb_define_method(rb_cTrie, "children", rb_trie_find_children, arg_count);
+	rb_define_method(rb_cTrie, "each", rb_trie_find_children_with_block, arg_count);
 
 	arg_count = 2;
 	rb_define_method(rb_cTrie, "[]=", rb_trie_set_key_to_value, arg_count);
@@ -194,6 +197,14 @@ static void trie_collect_values(void * t, VALUE rary) {
 	}
 }
 
+static void trie_collect_values_with_yield(void * t) {	
+	trie_node *node = (trie_node*)t;
+	if (node->value != Qnil) {
+		// rb_ary_push(rary, node->value);
+		rb_yield(node->value);
+	}
+}
+
 static VALUE rb_trie_find_children(VALUE self, VALUE key) {
 	trie_node * root;
 	trie_node * node;
@@ -207,6 +218,23 @@ static VALUE rb_trie_find_children(VALUE self, VALUE key) {
 	if (node == NULL) return Qnil;
 
 	trie_traverse_with_context(node, rary, trie_collect_values);
+	return rary;
+}
+
+
+static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key) {
+	trie_node * root;
+	trie_node * node;
+	char * key_cstring;
+	VALUE rary = rb_ary_new();
+
+	key_cstring = StringValuePtr(key);
+	Data_Get_Struct(self, trie_node, root);
+
+	node = trie_node_for_key(root, key_cstring, false);
+	if (node == NULL) return Qnil;
+
+	trie_traverse(node, trie_collect_values_with_yield);
 	return rary;
 }
 

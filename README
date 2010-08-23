@@ -15,6 +15,18 @@ t = Trie.new
 t["key"] = "value"
 t["key"]            # => "value"
 
+t.children("partial key") will return all values for all keys that match the partial key
+
+t["go"] = 1
+t["goes"] = 2
+t["gone"] = 3
+t["other"] = 4
+
+t.children("go") => [1,2,3]
+
+t.each("partial key") will yield to the given block all values that are matched by the partial key
+t.each("go") {|v| puts v } => prints 1, 2 & 3 
+
 == Bugs
 
 I'm sure there are plenty!

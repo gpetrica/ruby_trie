@@ -24,7 +24,10 @@ static trie_node * trie_sibling_for_char(trie_node * node, char ch);
 static trie_node * trie_add_sibling_for_char(trie_node * node, char ch);
 static trie_node * trie_new_node_with_char(char ch);
 static trie_node * trie_new_node();
+static VALUE rb_trie_find_children(VALUE self, VALUE key);
+static void trie_collect_values(void * t, VALUE prary);
 static void trie_traverse(trie_node * trie, void (*lambda_func)(void *));
+static void trie_traverse_with_context(trie_node * trie, VALUE context, void (*lambda_func)(void *, VALUE));
 static void free_trie(trie_node * trie);
 
 
@@ -142,6 +145,7 @@ void Init_trie() {
 	arg_count = 1;
 	rb_define_method(rb_cTrie, "[]", rb_trie_get_key, arg_count);
 	rb_define_method(rb_cTrie, "delete", rb_trie_undef_key, arg_count);
+	rb_define_method(rb_cTrie, "children", rb_trie_find_children, arg_count);
 
 	arg_count = 2;
 	rb_define_method(rb_cTrie, "[]=", rb_trie_set_key_to_value, arg_count);
@@ -181,6 +185,29 @@ static trie_node * trie_node_for_key(trie_node * root, char * key, bool create_m
 	}	
 		
 	return node;    
+}
+
+static void trie_collect_values(void * t, VALUE rary) {	
+	trie_node *node = (trie_node*)t;
+	if (node->value != Qnil) {
+		rb_ary_push(rary, node->value);
+	}
+}
+
+static VALUE rb_trie_find_children(VALUE self, VALUE key) {
+	trie_node * root;
+	trie_node * node;
+	char * key_cstring;
+	VALUE rary = rb_ary_new();
+
+	key_cstring = StringValuePtr(key);
+	Data_Get_Struct(self, trie_node, root);
+
+	node = trie_node_for_key(root, key_cstring, false);
+	if (node == NULL) return Qnil;
+
+	trie_traverse_with_context(node, rary, trie_collect_values);
+	return rary;
 }
 
 static trie_node * trie_sibling_for_char(trie_node * node, char ch) {
@@ -228,6 +255,18 @@ static void trie_traverse(trie_node * trie, void (* lambda_func)(void *)) {
 	}
 
 	lambda_func(trie);
+}
+
+static void trie_traverse_with_context(trie_node * trie, VALUE context, void (*lambda_func)(void *, VALUE)) {
+	if (trie->next_sibling != NULL) {
+		trie_traverse_with_context(trie->next_sibling, context, lambda_func);
+	}
+
+	if (trie->first_child != NULL) {
+		trie_traverse_with_context(trie->first_child, context, lambda_func);
+	}
+
+	lambda_func(trie, context);
 }
 
 static void free_trie(trie_node * trie) {

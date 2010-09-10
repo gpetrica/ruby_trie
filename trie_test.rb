@@ -5,9 +5,10 @@ max = 1000000
 
 def time
   starttime = Time.now
-  yield
+  res = yield
   endtime = Time.now
   puts "Time elapsed: #{endtime - starttime} seconds"
+	res
 end
 
 puts "With a native Trie..."

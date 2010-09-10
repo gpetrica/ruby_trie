@@ -215,9 +215,9 @@ static VALUE rb_trie_find_children(VALUE self, VALUE key) {
 	Data_Get_Struct(self, trie_node, root);
 
 	node = trie_node_for_key(root, key_cstring, false);
-	if (node == NULL) return Qnil;
+	if (node == NULL || node->first_child == NULL) return rary;
 
-	trie_traverse_with_context(node, rary, trie_collect_values);
+	trie_traverse_with_context(node->first_child, rary, trie_collect_values);
 	return rary;
 }
 
@@ -232,9 +232,9 @@ static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key) {
 	Data_Get_Struct(self, trie_node, root);
 
 	node = trie_node_for_key(root, key_cstring, false);
-	if (node == NULL) return Qnil;
+	if (node == NULL || node->first_child == NULL) return rary;
 
-	trie_traverse(node, trie_collect_values_with_yield);
+	trie_traverse(node->first_child, trie_collect_values_with_yield);
 	return rary;
 }
 

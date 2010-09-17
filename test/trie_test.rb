@@ -1,5 +1,7 @@
+$:.unshift File.dirname(__FILE__) + '/../lib'
+$:.unshift File.dirname(__FILE__) + '/../ext/trie'
+
 require 'trie'
-require 'rubytrie'
 
 max = 1000000
 

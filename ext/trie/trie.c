@@ -31,6 +31,8 @@ static void trie_collect_values_with_yield(void * t);
 static void trie_traverse(trie_node * trie, void (*lambda_func)(void *));
 static void trie_traverse_with_context(trie_node * trie, VALUE context, void (*lambda_func)(void *, VALUE));
 static void free_trie(trie_node * trie);
+static void count_nodes_callback(void *n, VALUE accum);
+static VALUE rb_trie_count_nodes(VALUE self);
 
 
 // ========================
@@ -67,6 +69,23 @@ static VALUE rb_trie_set_key_to_value(VALUE self, VALUE key, VALUE value) {
 	node->value = value;
 	
 	return Qnil;
+}
+
+static uint mem_count = 0;
+
+static void count_nodes_callback(void *n, VALUE accum) {
+  trie_node *node = (trie_node*)n;
+  // rb_big_plus(accum, rb_uint2big(sizeof(*node)));
+  mem_count+=sizeof(*node);
+}
+
+static VALUE rb_trie_count_nodes(VALUE self) {
+  trie_node *root;
+  Data_Get_Struct(self, trie_node, root);
+  VALUE accum = rb_uint2big(0);
+  mem_count = 0;
+  trie_traverse_with_context(root, accum, count_nodes_callback);
+  return rb_uint2big(mem_count);
 }
 
 static VALUE rb_trie_undef_key(VALUE self, VALUE key) {
@@ -143,6 +162,7 @@ void Init_trie() {
 
 	int arg_count = 0;
 	//rb_define_method(rb_cTrie, "inspect", rb_trie_inspect, arg_count);
+	rb_define_method(rb_cTrie, "memory", rb_trie_count_nodes, arg_count);
 	
 	arg_count = 1;
 	rb_define_method(rb_cTrie, "[]", rb_trie_get_key, arg_count);

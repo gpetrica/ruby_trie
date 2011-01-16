@@ -1,1 +1,2 @@
 1.0 added children and each methods
+1.1 added levenshtein algorithm implementation - inspired from: http://stevehanov.ca/blog/index.php?id=114

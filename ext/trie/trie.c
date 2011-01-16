@@ -26,6 +26,7 @@ static trie_node * trie_new_node_with_char(char ch);
 static trie_node * trie_new_node();
 static VALUE rb_trie_find_children(VALUE self, VALUE key);
 static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key);
+static VALUE rb_trie_levenshtein_search(VALUE self, VALUE word, VALUE max_distance);
 static void trie_collect_values(void * t, VALUE prary);
 static void trie_collect_values_with_yield(void * t);
 static void trie_traverse(trie_node * trie, void (*lambda_func)(void *));
@@ -33,6 +34,8 @@ static void trie_traverse_with_context(trie_node * trie, VALUE context, void (*l
 static void free_trie(trie_node * trie);
 static void count_nodes_callback(void *n, VALUE accum);
 static VALUE rb_trie_count_nodes(VALUE self);
+static recursive_levenshtein_search(trie_node* trie, VALUE rary, int* prev_line, int max_dist, char* word, int word_length);
+// int print_arr(char c, int* arr, int len);
 
 
 // ========================
@@ -172,6 +175,8 @@ void Init_trie() {
 
 	arg_count = 2;
 	rb_define_method(rb_cTrie, "[]=", rb_trie_set_key_to_value, arg_count);
+	// trie.levenshtein_search(word, max_distance)
+	rb_define_method(rb_cTrie, "levenshtein_search", rb_trie_levenshtein_search, arg_count);
 }
 
 
@@ -266,6 +271,77 @@ static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key) {
 
 	trie_traverse(node->first_child, trie_collect_values_with_yield);
 	return rary;
+}
+
+static VALUE rb_trie_levenshtein_search(VALUE self, VALUE word, VALUE max_distance) {
+  trie_node *root;
+  trie_node *node;
+  char *word_cstring;
+  VALUE rary = rb_ary_new();
+  int i=0;
+  
+  Data_Get_Struct(self, trie_node, root);
+  
+  word_cstring = StringValuePtr(word);
+
+  int first_line[strlen(word_cstring) + 1];
+  for(; i < strlen(word_cstring) + 1; i++) {
+    first_line[i] = i;
+  }
+  // print_arr('R', first_line, strlen(word_cstring)+1);
+  recursive_levenshtein_search(root->next_sibling, rary, first_line, FIX2INT(max_distance), word_cstring, strlen(word_cstring));
+
+  return rary;
+}
+
+int minimum(int* numbers, int len) {
+  int minValue = numbers[0];
+  int i;
+  for(i=1; i<len; i++) {
+    if (numbers[i] < minValue) minValue = numbers[i];
+  }
+  return minValue;
+}
+
+int min3(int a, int b, int c) {
+  int min = a;
+  if (b < min) min = b;
+  if (c < min) min = c;
+  return min;
+}
+
+static recursive_levenshtein_search(trie_node* trie, VALUE rary, int* prev_line, int max_dist, char* word, int word_length) {
+  int cur_line[word_length + 1];
+  int i,j, insert_cost, replace_cost, delete_cost;
+  VALUE carr;
+
+  cur_line[0] = prev_line[0] + 1;
+
+  for(i=1; i < word_length + 1; i++) {
+    insert_cost = cur_line[i-1] + 1;
+    delete_cost = prev_line[i] + 1;
+    if (trie->character != word[i-1]) {
+      replace_cost = prev_line[i-1] + 1;
+    } else {
+      replace_cost = prev_line[i-1];
+    }
+    cur_line[i] = min3(insert_cost, delete_cost, replace_cost);
+  }
+
+
+  if (cur_line[word_length] <= max_dist && trie->value != Qnil) {
+    carr = rb_ary_new();
+    rb_ary_push(carr, trie->value);
+    rb_ary_push(carr, INT2FIX(cur_line[word_length]));
+    rb_ary_push(rary, carr);
+  }
+
+  if (minimum(cur_line, word_length + 1) <= max_dist) {
+    if (trie->first_child != NULL)
+      recursive_levenshtein_search(trie->first_child, rary, cur_line, max_dist, word, word_length);
+    if (trie->next_sibling != NULL)
+      recursive_levenshtein_search(trie->next_sibling, rary, prev_line, max_dist, word, word_length);
+  }
 }
 
 static trie_node * trie_sibling_for_char(trie_node * node, char ch) {

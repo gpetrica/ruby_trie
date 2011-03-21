@@ -1,3 +1,4 @@
 1.0 added children and each methods
 1.1 added levenshtein algorithm implementation - inspired from: http://stevehanov.ca/blog/index.php?id=114
 2.0 completely rewritten the trie implementation to use more optimized data structure. For /usr/share/dict/web2 it takes the memory to about 6Mb from 40Mb. The levenshtein now takes a block and passes in the value but it can be easy extened to return an array.  It also has a glitch where some values are for some reason just false... :|
+2.1 bug fixes, fixing levenshtein search

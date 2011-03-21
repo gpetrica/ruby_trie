@@ -64,7 +64,7 @@ specification = Gem::Specification.new do |s|
   s.platform = Gem::Platform::RUBY
 
   s.files = [ "README", "ChangeLog"] + 
-              FileList['ext/**/*.h']
+              FileList['ext/**/*.h'] +
               FileList['ext/**/*.c'] + 
               FileList['ext/**/*.rb'] + 
               FileList['lib/**/*.rb'] + 

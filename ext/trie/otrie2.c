@@ -80,8 +80,10 @@ Pos* new_pos(Node *node, int offset) {
 	return pos;
 }
 
-Node* pos_find_or_create_child(Pos* this, const char* string, bool insert) {
-	Node *child = this->node->first_child;
+Node* pos_find_or_create_child(Pos* this, const char* string, bool down, bool insert) {
+	Node *child = this->node->next_sibling;
+	if (down) child = this->node->first_child;
+
 	Node *last_child = NULL;
 	
 	while(child != NULL && *child->data != *string) { 
@@ -90,10 +92,18 @@ Node* pos_find_or_create_child(Pos* this, const char* string, bool insert) {
 	}
 	if (child == NULL && insert) {
 		child = new_node_string(string);
-		if (this->node -> first_child != NULL)  {
-			last_child -> next_sibling = child;
+		if (!down) {
+			if (this->node -> next_sibling != NULL)  {
+				last_child -> next_sibling = child;
+			} else {
+				this -> node -> next_sibling = child;
+			}
 		} else {
-			this -> node -> first_child = child;
+			if (this -> node -> first_child != NULL) {
+				last_child -> next_sibling = child;
+			} else {
+				this->node -> first_child = child;
+			}
 		}
 	}
 	return child;	
@@ -101,7 +111,7 @@ Node* pos_find_or_create_child(Pos* this, const char* string, bool insert) {
 
 void pos_next(Pos *this, const char* string, bool insert) {
 	if (this -> node -> data == NULL) {
-		this->node = pos_find_or_create_child(this, string, insert);
+		this->node = pos_find_or_create_child(this, string, false, insert);
 		this->offset = 0;
 		return;
 	}
@@ -117,10 +127,13 @@ void pos_next(Pos *this, const char* string, bool insert) {
 			// - new child node with new content			
 			if (insert) {
 				Node *splitChild = new_node_string(this->node->data + this->offset + 1);
+				splitChild -> value = this -> node -> value;
 				Node *newChild = new_node_string(string); 
+        newChild -> value = Qnil;
 				node_update_data(this->node, this->node->data, this->offset + 1);
 				splitChild -> next_sibling = newChild;
 				this->node -> first_child = splitChild;
+        this->node -> value = Qnil;
 				
 				this->node = newChild;
 				this->offset = 0;
@@ -131,19 +144,18 @@ void pos_next(Pos *this, const char* string, bool insert) {
 		}
 	} else {
 		// reached end of data... find a child
-		this->node = pos_find_or_create_child(this, string, insert);
+		this->node = pos_find_or_create_child(this, string, true, insert);
 		this->offset = 0;
 		return;
 	}
 }
 
 void node_visit(Node* this, node_iterator func, VALUE context) {
-	if (this->next_sibling != NULL) {
-		 node_visit(this->next_sibling, func, context);
-	}
+	func(this, context);
 	if (this->first_child != NULL) {
 		node_visit(this->first_child, func, context);
 	}
-	
-	func(this, context);
+	if (this->next_sibling != NULL) {
+		node_visit(this->next_sibling, func, context);
+	}
 }

@@ -11,6 +11,7 @@
 #include <stdlib.h>  /* for malloc, free */
 #include <string.h>  /* for memcmp, memmove */
 #include "otrie2.h"
+#include "levenshtein_distance.h"
 
 static VALUE rb_cTrie;
 
@@ -65,7 +66,7 @@ static VALUE rb_trie_count_nodes(VALUE self) {
 	total_memory = 0;
 	node_visit(root, count_nodes_callback, accum);
 	//return accum;
-	rb_uint2big(total_memory);
+	return rb_uint2big(total_memory);
 }
 
 static VALUE rb_trie_allocate(VALUE klass) {
@@ -157,8 +158,7 @@ static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key) {
 
 
 static VALUE rb_trie_set_key_to_value(VALUE self, VALUE key, VALUE value) {
-	Node * root;
-	Node * node;
+	Node * root, *node;
 	char * key_cstring;
 	
 	Check_Type(key, T_STRING);
@@ -166,7 +166,17 @@ static VALUE rb_trie_set_key_to_value(VALUE self, VALUE key, VALUE value) {
 	
 	Data_Get_Struct(self, Node, root);
 	
-	node_insert(root, key_cstring, value);
+	node = node_find(root, key_cstring);
+	if (node == NULL || node -> value == Qnil) {
+    // printf("New node for %s -> %d\n", key_cstring, value);
+		VALUE arr = rb_ary_new();
+		rb_ary_push(arr, value);
+		node_insert(root, key_cstring, arr);
+	} else {
+    // printf("Append value %s to %s -> %d\n", node->data, key_cstring, node->value);
+		rb_ary_push(node->value, value);
+	}
+	
 	return Qnil;
 }
 

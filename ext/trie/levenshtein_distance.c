@@ -23,7 +23,7 @@ void levenshtein_distance(Node* trie, const char* word, int max_distance, levens
 	for(; i < strlen(word) + 1; i++) {
 		first_line[i] = i;
 	}
-	recursive_levenshtein_search(trie->first_child, 0, cb, first_line, max_distance, word, strlen(word));
+	recursive_levenshtein_search(trie->next_sibling, 0, cb, first_line, max_distance, word, strlen(word));
 }
 
 

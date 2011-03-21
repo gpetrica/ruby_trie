@@ -14,7 +14,7 @@ CLOBBER.include '**/*.log'
 CLOBBER.include '**/Makefile'
 CLOBBER.include '**/extconf.h'
 
-RUBY_TRIE_VERSION = "2.0"
+RUBY_TRIE_VERSION = "2.1"
 RUBY_TRIE_GEM_NAME = "RubyTrie"
 
 desc 'Default: run unit tests.'

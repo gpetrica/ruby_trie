@@ -22,6 +22,11 @@ t["goes"] = 2
 t["gone"] = 3
 t["other"] = 4
 
+by default assigning multiple values to the same object will add them to an array.
+t['a'] = 1
+t['a'] = 2 
+will return for t['a'] => [1,2]
+
 t.children("go") => [1,2,3]
 
 t.each("partial key") will yield to the given block all values that are matched by the partial key
@@ -29,8 +34,11 @@ t.each("go") {|v| puts v } => prints 1, 2 & 3
 
 Levenshtein search
 
-t.levenshtein_search("go", 2) - will return all values for the words in the trie that have 1 from the search word
-ex: [["go", 0], ["goes", 2], ["gone", 2]]
+t.levenshtein_search("go", 2) {|value| puts value}  - will print all values for the words in the trie that have 2 distance from the search word
+Eg.
+1
+2
+3
 
 == Bugs
 

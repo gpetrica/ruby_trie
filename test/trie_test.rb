@@ -23,10 +23,11 @@ time do
   1.upto(max) do |i|
     t["item #{i}"].class
   end
-  
-  1.upto(max) do |i|
-    t.delete("item #{i}")
-  end
+
+  # not implemented yet  
+  # 1.upto(max) do |i|
+  #   t.delete("item #{i}")
+  # end
 end
 
 
@@ -41,9 +42,9 @@ time do
     t["item #{i}"].class
   end
 
-  1.upto(max) do |i|
-    t.delete("item #{i}")
-  end
+  # 1.upto(max) do |i|
+  #   t.delete("item #{i}")
+  # end
 end
 
 # puts "With a Ruby Trie..."

@@ -14,7 +14,7 @@ CLOBBER.include '**/*.log'
 CLOBBER.include '**/Makefile'
 CLOBBER.include '**/extconf.h'
 
-RUBY_TRIE_VERSION = "1.1"
+RUBY_TRIE_VERSION = "2.0"
 RUBY_TRIE_GEM_NAME = "RubyTrie"
 
 desc 'Default: run unit tests.'
@@ -60,10 +60,11 @@ specification = Gem::Specification.new do |s|
   s.name = RUBY_TRIE_GEM_NAME
   s.summary = "Set a Timeout based on signals, which are more reliable than Timeout. Timeout is based on green threads."
   s.version = RUBY_TRIE_VERSION
-  s.authors = ["Matt Freels", "Petrica Ghiurca"]
+  s.authors = ["Petrica Ghiurca", "Matt Freels"]
   s.platform = Gem::Platform::RUBY
 
   s.files = [ "README", "ChangeLog"] + 
+              FileList['ext/**/*.h']
               FileList['ext/**/*.c'] + 
               FileList['ext/**/*.rb'] + 
               FileList['lib/**/*.rb'] + 

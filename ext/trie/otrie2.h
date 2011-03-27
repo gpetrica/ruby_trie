@@ -33,6 +33,7 @@ Node* new_node();
 void free_node(Node*);
 void node_insert(Node* node, const char* string, const VALUE value);
 Node* node_find(Node* this, const char* string);
+Node* partial_node_find(Node* this, const char* string);
 
 Pos* new_pos(Node *node, int offset);
 Node* pos_find_or_create_child(Pos* this, const char* string, bool down, bool insert);

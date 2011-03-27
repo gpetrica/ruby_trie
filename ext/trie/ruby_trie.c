@@ -117,7 +117,7 @@ static VALUE rb_trie_find_children(VALUE self, VALUE key) {
 	key_cstring = StringValuePtr(key);
 	Data_Get_Struct(self, Node, root);
 	
-	node = node_find(root, key_cstring);
+	node = partial_node_find(root, key_cstring);
 	
 	if (node != NULL && node->value != Qnil) {
 		rb_ary_push(rary, node->value);
@@ -144,7 +144,7 @@ static VALUE rb_trie_find_children_with_block(VALUE self, VALUE key) {
 	key_cstring = StringValuePtr(key);
 	Data_Get_Struct(self, Node, root);
 	
-	node = node_find(root, key_cstring);
+	node = partial_node_find(root, key_cstring);
 	
 	if (node != NULL && node->value != Qnil) {
 		rb_yield(node->value);
@@ -168,12 +168,10 @@ static VALUE rb_trie_set_key_to_value(VALUE self, VALUE key, VALUE value) {
 	
 	node = node_find(root, key_cstring);
 	if (node == NULL || node -> value == Qnil) {
-    // printf("New node for %s -> %d\n", key_cstring, value);
 		VALUE arr = rb_ary_new();
 		rb_ary_push(arr, value);
 		node_insert(root, key_cstring, arr);
 	} else {
-    // printf("Append value %s to %s -> %d\n", node->data, key_cstring, node->value);
 		rb_ary_push(node->value, value);
 	}
 	

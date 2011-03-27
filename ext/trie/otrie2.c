@@ -13,6 +13,8 @@
 
 #include "otrie2.h"
 
+Node* node_find_impl(Node* this, const char* string, bool include_partial);
+
 Node* new_node() {
 	Node *node = malloc(sizeof(Node));
 	memset(node, 0, sizeof(Node));
@@ -61,6 +63,14 @@ void node_insert(Node* node, const char* string, const VALUE value) {
 }
 
 Node* node_find(Node* this, const char* string) {
+	return node_find_impl(this, string, false);
+}
+
+Node* partial_node_find(Node* this, const char* string) {
+	return node_find_impl(this, string, true);
+}
+
+Node* node_find_impl(Node* this, const char* string, bool include_partial) {
 	int len = strlen(string);
 	Pos *cur = new_pos(this, 0);
 	int i=0;
@@ -68,7 +78,7 @@ Node* node_find(Node* this, const char* string) {
 		pos_next(cur, string + i, false);
 		if (cur->node == NULL) { return NULL; }
 	}
-	if (strlen(cur->node->data) == cur->offset + 1)
+	if (strlen(cur->node->data) == cur->offset + 1 || include_partial)
 		return cur->node;
 	return NULL;
 }
@@ -129,11 +139,10 @@ void pos_next(Pos *this, const char* string, bool insert) {
 				Node *splitChild = new_node_string(this->node->data + this->offset + 1);
 				splitChild -> value = this -> node -> value;
 				Node *newChild = new_node_string(string); 
-        newChild -> value = Qnil;
+				newChild -> value = Qnil;
 				node_update_data(this->node, this->node->data, this->offset + 1);
 				splitChild -> next_sibling = newChild;
 				this->node -> first_child = splitChild;
-        this->node -> value = Qnil;
 				
 				this->node = newChild;
 				this->offset = 0;
